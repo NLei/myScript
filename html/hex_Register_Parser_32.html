@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <h1>Hello Register(32bit)</h1>
+
+    <style>
+        td {
+            text-align: center;
+        }
+
+        td.bitlabel {
+            color: #199;
+            border: 0.5;
+            font-size: small;
+            width: 2em;
+        }
+
+        td.bitctrl {
+            background-color: #666;
+            cursor: pointer;
+        }
+
+        td.bit_0 {
+            background-color: #666;
+        }
+
+        td.bit_1 {
+            background-color: #a66;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <table border="1">
+        <tbody>
+            <tr>
+                <th>hex:</th>
+                <td colspan="32" style="text-align: left;"><a>0x</a>
+                    <input id=hexValue style="width:10em;" maxlength="8"></input>
+                </td>
+            </tr>
+            <tr>
+                <th>dec:</th>
+                <td colspan="32" style="text-align: left;">
+                    <input id=decValue style="width:12em;" maxlength="10">
+                    </input>
+                </td>
+            </tr>
+
+        </tbody>
+
+        <tbody>
+            <tr id="byteValue">
+                <th>byte:</th>
+            </tr>
+
+            <tr id="bitslabel">
+                <th rowspan="2">bit:</th>
+            </tr>
+
+            <tr id="bitsValue">
+            </tr>
+        </tbody>
+
+    </table>
+
+    <script type="text/javascript" charset="UTF-8">
+
+        var hexValue = document.querySelector("#hexValue");
+        var decValue = document.querySelector("#decValue");
+
+        var byteValue = document.querySelector("#byteValue");
+        var bitsValue = document.querySelector("#bitsValue");
+        var bitslabel = document.querySelector("#bitslabel");
+
+        for (let i = 0; i < 4; i++) {
+            let oneByte = byteValue.insertCell();            
+            oneByte.colSpan = "8";
+            oneByte.textContent = "00";
+        }
+
+        for (let i = 0; i < 32; i++) {
+            let label = bitslabel.insertCell(1);
+            label.textContent = i;
+            label.className = "bitlabel";
+
+            let ctrl = bitsValue.insertCell();
+            ctrl.textContent = 0;
+            ctrl.className = "bitctrl";
+        }
+
+
+        document.querySelectorAll("td.bitctrl").forEach(function (item, index) {
+            item.onclick = function () {
+                if (item.className.indexOf("bit_1") >= 0) {
+                    item.className = "bitctrl bit_0";
+                    item.textContent = 0;
+                } else {
+                    item.className = "bitctrl bit_1";
+                    item.textContent = 1;
+                }
+                bits = bitsValue.innerText.replaceAll('\t', '')
+                dec = parseInt(bits, 2);
+                hex = dec.toString(16).padStart(8, '0');
+                byteValue.querySelectorAll("td").forEach(function (item, index) {
+                    item.innerText = hex.substr(index * 2, 2);
+                })
+                hexValue.value = hex;
+                decValue.value = dec;
+            }
+        })
+
+        hexValue.oninput = function () {
+            console.log("oninput " + hexValue.selectionStart);
+            var posbak = hexValue.selectionStart;
+
+            if (hexValue.value.search(/[^0-9abcdef]/) >= 0) {
+                hexValue.value = hexValue.value.replace(/[^0-9abcdef]/ig, '');
+                posbak--;
+            }
+            hexValue.selectionStart = posbak;
+            hexValue.selectionEnd = posbak;
+
+            hex = hexValue.value;
+            dec = parseInt(hex, 16);
+            bits = dec.toString(2).padStart(32, '0');
+
+            for (let i = 0; i < bits.length; i++) {
+                bitsValue.cells[i].innerText = bits[i];
+                bitsValue.cells[i].className = bits[i] == '0' ? "bitctrl bit_0" : "bitctrl bit_1";
+            }
+            decValue.value = dec;
+        };
+
+        decValue.oninput = function () {
+            console.log("oninput " + decValue.selectionStart);
+            var posbak = decValue.selectionStart;
+
+            if (decValue.value.search(/[^0-9]/) >= 0) {
+                decValue.value = decValue.value.replace(/[^0-9]/ig, '');
+                posbak--;
+            }
+            decValue.selectionStart = posbak;
+            decValue.selectionEnd = posbak;
+
+            dec = parseInt(decValue.value);
+            hex = dec.toString(16);
+            bits = dec.toString(2).padStart(32, '0');
+
+            for (let i = 0; i < bits.length; i++) {
+                bitsValue.cells[i].innerText = bits[i];
+                bitsValue.cells[i].className = bits[i] == '0' ? "bitctrl bit_0" : "bitctrl bit_1";
+            }
+            hexValue.value = hex;
+        };
+
+    </script>
+
+</body>
+
+</html>

@@ -6,8 +6,8 @@
 // @author       You
 // @match        https://www.kernel.org/doc/html/latest/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=kernel.org
-// @updateURL    https://github.com/NLei/myScript/raw/master/SwitchTranslationsForkernelDocs.user.js
-// @downloadURL  https://github.com/NLei/myScript/raw/master/SwitchTranslationsForkernelDocs.user.js
+// @updateURL    https://github.com/NLei/myScript/raw/master/userjs/SwitchTranslationsForkernelDocs.user.js
+// @downloadURL  https://github.com/NLei/myScript/raw/master/userjs/SwitchTranslationsForkernelDocs.user.js
 // @grant        none
 // ==/UserScript==
 

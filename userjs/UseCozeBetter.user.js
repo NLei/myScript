@@ -1,18 +1,17 @@
 // ==UserScript==
-// @name         Coze Open in User Mode
+// @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      2024-05-11
-// @description  try to take over the world!
+// @version      0.2.1
+// @description  ⚡️1.在个人空间中Coze Bots增加以用户模式启动的按钮；⚡️2.在对话中增加导出Markdown功能; ⚡️3.开发模式的3列改成2列，合并提示置和功能配置为一列，使对话窗口占比更大。
 // @author       You
 // @match        https://www.coze.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=coze.com
-// @updateURL    https://github.com/NLei/myScript/raw/master/userjs/UserCozeBetter.user.js
-// @downloadURL  https://github.com/NLei/myScript/raw/master/userjs/UserCozeBetter.user.js
+// @updateURL    https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
+// @downloadURL  https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
 // @grant        none
 // ==/UserScript==
 
 function UserModeFunc() {
-    console.log("AddUserButton。");
     function addBtnLoop() {
         if( document.querySelector("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']") != null ) {
             document.querySelectorAll("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']").forEach(function(item){
@@ -204,53 +203,48 @@ function ExportMDFunc(){
     MDaddBtnLoop();
 }
 
-/*
-(function(history){
-    var pushState = history.pushState;
-    var replaceState = history.replaceState;
+// 开发界面从3列改成2列
+function DevelopUI_2Cols() {
+    var style = document.createElement('style');
 
-    history.pushState = function(state) {
-        console.log('pushState called, new URL:', location.href);
-        return pushState.apply(history, arguments);
-    };
+    style.type = 'text/css';
+    style.innerHTML = `
+  .sidesheet-container {
+    grid-template-columns: 1fr 2fr !important;
+  }
+  .sidesheet-container > :first-child > :last-child {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .sidesheet-container > :first-child > :last-child > :first-child {
+    height: 25% !important;
+  }
+  .sidesheet-container > :first-child > :last-child > :first-child > :first-child {
+    padding-bottom: 5px !important;
+  }
+`;
 
-    history.replaceState = function(state) {
-        console.log('new URL:', location.href);
+    document.head.appendChild(style);
+}
 
-        var space_url_match = /https:\/\/www\.coze\.com\/space\/.*\/bot$/;
+const space_url_match = /https:\/\/www\.coze\.com\/space\/.+\/bot$/;
+const bot_url_match = /https:\/\/www\.coze\.com\/store\/bot\/.+/;
+const dev_url_match = /https:\/\/www\.coze\.com\/space\/.+\/bot\/.+/;
 
-        var bot_url_match = /https:\/\/www\.coze\.com\/store\/bot\/*/;
-
-/*
-        if (space_url_match.test(location.href)) {
-            UserModeFunc();
-        } else if (bot_url_match.test(location.href)) {
-            ExportMDFunc();
-        }
-
-        return replaceState.apply(history, arguments);
-    };
-
-    window.addEventListener('popstate', function(event) {
-        console.log('popstate fired, new URL:', location.href);
-    });
-
-})(window.history);
-
-*/
-
-const space_url_match = /https:\/\/www\.coze\.com\/space\/.*\/bot$/;
-const bot_url_match = /https:\/\/www\.coze\.com\/store\/bot\/*/;
-
-var href_old = location.href;
+var href_old = "";
 
 function check_href_changed() {
     if(href_old != location.href) {
         href_old = location.href;
         if (space_url_match.test(location.href)) {
+            console.log(">match: space_url");
             UserModeFunc();
         } else if (bot_url_match.test(location.href)) {
+            console.log(">match: bot_url");
             ExportMDFunc();
+        } else if (dev_url_match.test(location.href)) {
+            console.log(">match: dev_url");
+            DevelopUI_2Cols();
         }
     }
 

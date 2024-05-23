@@ -1,16 +1,33 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.1
+// @version      0.2.2
 // @description  ⚡️1.在个人空间中Coze Bots增加以用户模式启动的按钮；⚡️2.在对话中增加导出Markdown功能; ⚡️3.开发模式的3列改成2列，合并提示置和功能配置为一列，使对话窗口占比更大。
 // @author       You
 // @match        https://www.coze.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=coze.com
 // @updateURL    https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
 // @downloadURL  https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
-// @grant        none
+// @grant        GM_addStyle
 // ==/UserScript==
 
+GM_addStyle(
+    `
+    .bot-user-mode-div {
+      margin: -10px 10px;
+      direction: rtl;
+    }
+    .bot-user-mode-btn {
+      box-shadow: 2px 2px 5px 1px #0005;
+      text-decoration: none;
+    }
+    `
+);
+
+
+/**
+ * 在Space添加以用户模式打开的按钮
+ */
 function UserModeFunc() {
     function addBtnLoop() {
         if( document.querySelector("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']") != null ) {
@@ -18,19 +35,16 @@ function UserModeFunc() {
                 if( item.href.match(/\/space\/.*\/bot\/.*/i) ) {
                     let editLink = item.href;
                     let userLink = editLink.replace(/.*(\/bot\/.*)/, "/store$1?bot_id=true");
-
                     item.removeAttribute("href");
-
                     let btn_user = document.createElement('div');
                     item.append(btn_user);
-
-                    btn_user.innerHTML = `<a class="semi-button semi-button-primary" href="${userLink}" target="_blank">Open in User Mode</a>`;
+                    btn_user.className = "bot-user-mode-div"
+                    btn_user.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn" href="${userLink}" target="_blank">Open in User Mode</a>`;
                     btn_user.addEventListener('click', function(event) {
                         event.stopPropagation();
                     });
                 }
             });
-
         } else {
             setTimeout(addBtnLoop, 800);
         }
@@ -40,6 +54,10 @@ function UserModeFunc() {
     addBtnLoop();
 }
 
+
+/**
+ * 将对话内容转换为 Markdown 格式，并提供复制和导出功能
+ */
 function ExportMDFunc(){
 
     function convertToMarkdown(html) {
@@ -209,20 +227,31 @@ function DevelopUI_2Cols() {
 
     style.type = 'text/css';
     style.innerHTML = `
-  .sidesheet-container {
-    grid-template-columns: 1fr 2fr !important;
-  }
-  .sidesheet-container > :first-child > :last-child {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .sidesheet-container > :first-child > :last-child > :first-child {
-    height: 25% !important;
-  }
-  .sidesheet-container > :first-child > :last-child > :first-child > :first-child {
-    padding-bottom: 5px !important;
-  }
-`;
+     .sidesheet-container {
+       grid-template-columns: 1fr 2fr !important;
+     }
+     .sidesheet-container > :first-child > :last-child {
+       display: flex !important;
+       flex-direction: column !important;
+     }
+     .sidesheet-container > :first-child > :last-child > :first-child {
+       height: 25% !important;
+     }
+     .sidesheet-container > :first-child > :last-child > :first-child > :first-child {
+       padding-bottom: 5px !important;
+     }
+     #root > div:nth-child(2) > div > div > div > div > div.aSIvzUFX9dAs4AK6bTj0 > div.sidesheet-container.UMf9npeM8cVkDi0CDqZ0 > div.IoQhh3vVUhwDTJi9EIDK > div.arQAab07X2IRwAe6dqHV > div.ZdYiacTEhcgSnacFo_ah > div > div.S6fvSlBc5DwOx925HTh1 {
+       padding: 1px 0px 0px 20px;
+     }
+
+     textarea[data-testid="prompt-text-area"] {
+       background:#FFFE;
+       box-shadow: inset 0px 0px 2px 1px #5555;
+     }
+     #root > div:nth-child(2) > div > div > div > div > div.aSIvzUFX9dAs4AK6bTj0 > div.sidesheet-container.UMf9npeM8cVkDi0CDqZ0 > div.IoQhh3vVUhwDTJi9EIDK {
+       min-width: 480px;
+     }
+    `;
 
     document.head.appendChild(style);
 }

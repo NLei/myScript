@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.2
+// @version      0.2.3
 // @description  ⚡️1.在个人空间中Coze Bots增加以用户模式启动的按钮；⚡️2.在对话中增加导出Markdown功能; ⚡️3.开发模式的3列改成2列，合并提示置和功能配置为一列，使对话窗口占比更大。
 // @author       You
 // @match        https://www.coze.com/*
@@ -144,16 +144,13 @@ function ExportMDFunc(){
     function GetDialogContent() {
         let markdownContent = '';
 
-        let chats = document.querySelectorAll('div[data-scroll-element="scrollable"] div.chat-uikit-message-box-container__message__message-box');
+        let chats = document.querySelectorAll('div[data-scroll-element="scrollable"] div.chat-uikit-message-box-container__message__message-box div.chat-uikit-message-box-container__message__message-box__content');
 
         // 按倒序遍历chats
         Array.from(chats).reverse().forEach(function(chat) {
-
             let ask = chat.querySelector("div.chat-uikit-message-box-inner--primary");
-
             let htmlContent = chat.innerHTML;
             let chatMarkdown = convertToMarkdown(htmlContent);
-
             if (ask) {
                 markdownContent += "\n******\n## Ask: \n"+ chatMarkdown + '\n\n';
             } else {

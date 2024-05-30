@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.3
+// @version      0.2.5
 // @description  ⚡️1.在个人空间中Coze Bots增加以用户模式启动的按钮；⚡️2.在对话中增加导出Markdown功能; ⚡️3.开发模式的3列改成2列，合并提示置和功能配置为一列，使对话窗口占比更大。
 // @author       You
 // @match        https://www.coze.com/*
@@ -34,17 +34,21 @@ function UserModeFunc() {
             document.querySelectorAll("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']").forEach(function(item){
                 if( item.href.match(/\/space\/.*\/bot\/.*/i) ) {
                     let editLink = item.href;
-                    let userLink = editLink.replace(/.*(\/bot\/.*)/, "/store$1?bot_id=true");
-                    item.removeAttribute("href");
-                    let btn_user = document.createElement('div');
-                    item.append(btn_user);
-                    btn_user.className = "bot-user-mode-div"
-                    btn_user.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn" href="${userLink}" target="_blank">Open in User Mode</a>`;
-                    btn_user.addEventListener('click', function(event) {
-                        event.stopPropagation();
-                    });
+                    let userLink = editLink.replace(/\/space\/(.*)(\/bot\/.*)/, "/store$2?bot_id=true&space=$1");
+                    //item.removeAttribute("href");
+
+                    if(item.querySelector("div.bot-user-mode-div") ==null) {
+                        let btn_user = document.createElement('div');
+                        item.append(btn_user);
+                        btn_user.className = "bot-user-mode-div"
+                        btn_user.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn" href="${userLink}" target="_blank">Open in User Mode</a>`;
+                        btn_user.addEventListener('click', function(event) {
+                            event.stopPropagation();
+                        });
+                    }
                 }
             });
+            setTimeout(addBtnLoop, 1000);
         } else {
             setTimeout(addBtnLoop, 800);
         }
@@ -129,7 +133,7 @@ function ExportMDFunc(){
 
         // 处理代码块
         doc.querySelectorAll("div[class^=code-block] > div[class^=code-area]").forEach(codearea => {
-            let header = codearea.querySelector("div[class^=header]");
+            let header = codearea.querySelector("div[class^=header] > div[class^=text]");
             let language = header.textContent;
             header.remove();
             codearea.outerHTML = `\n\`\`\`${language}\n${codearea.textContent}\n\`\`\`\n`;
@@ -192,8 +196,9 @@ function ExportMDFunc(){
 
     function MDaddBtnLoop() {
         if( document.querySelector("#copy_dialog_to_md_button") ==null ) {
+
             var lhead = document.querySelector("div[class*=semi-col]:last-child > div[class*=semi-space]") ||
-                document.querySelector("div.flex.items-center.gap-5.h-6");
+                document.querySelector("div.flex.items-center.gap-5.h-6") || document.querySelector("div.sidesheet-container div.IoQhh3vVUhwDTJi9EIDK.yXFrvezYn_4mi6bhSzMN.CKOXiJzzJsU73hzE_M4r div.IJW2oexGFSA7_n0W_IUb");
             if (lhead) {
                 var btn_cp = document.createElement('button');
                 lhead.insertBefore(btn_cp, lhead.firstChild);
@@ -201,6 +206,7 @@ function ExportMDFunc(){
                 btn_cp.textContent = 'Copy Dialog to MD';
                 btn_cp.id = 'copy_dialog_to_md_button';
                 btn_cp.onclick = CopyDialogContent;
+                btn_cp.style = "margin: 0px 5px;";
 
                 var btn_dl = document.createElement('button');
                 lhead.insertBefore(btn_dl, lhead.firstChild);
@@ -208,6 +214,7 @@ function ExportMDFunc(){
                 btn_dl.textContent = 'Export MD File';
                 btn_dl.id = 'export_dialog_to_md_button';
                 btn_dl.onclick = ExportDialogContent;
+                btn_dl.style = "margin: 0px 5px;";
                 setTimeout(MDaddBtnLoop, 5000);
             }
         }
@@ -216,7 +223,47 @@ function ExportMDFunc(){
 
     // 启动循环
     MDaddBtnLoop();
+
+
+    function NeedPublish() {
+
+        if (/space=(\d+)/.test(location.href)) {
+            console.log("space=");
+            let not_exist = document.querySelector("div.semi-empty.semi-empty-vertical");
+
+            if(!not_exist) {
+                setTimeout(NeedPublish, 700);
+            }
+
+            let warn_info = not_exist.querySelector("div.semi-empty-content > h4");
+
+            if(warn_info) {
+                console.log("warn_not_exist=");
+                warn_info.textContent = warn_info.textContent.replace("exist", "publish");
+                warn_info.innerHTML +="<hr><p style='font-size:large;'>Bot need publish before opening in user mode</p>";
+            }
+
+            let back_div = not_exist.querySelector('div.semi-empty-footer[x-semi-prop="children"] button.semi-button')
+
+            if(back_div) {
+                console.log("back_div=");
+                let btn_publish = document.createElement('a');
+                let publ_href = location.href.replace(/\/store\/bot\/(\d+).*?space=(\d+)/, "/space/$2/bot/$1/publish");
+
+                btn_publish.innerHTML = `<a class="semi-button semi-button-primary" href="${publ_href}" style="text-decoration:none; margin:0px 10px; padding:0px 25px;" >Publish</a>`;
+
+                back_div.before(btn_publish);
+                back_div.classList.remove("semi-button-primary");
+            }
+        }
+
+    }
+
+    NeedPublish();
+
+
 }
+
 
 // 开发界面从3列改成2列
 function DevelopUI_2Cols() {
@@ -225,7 +272,7 @@ function DevelopUI_2Cols() {
     style.type = 'text/css';
     style.innerHTML = `
      .sidesheet-container {
-       grid-template-columns: 1fr 2fr !important;
+       grid-template-columns: 1fr 3fr !important;
      }
      .sidesheet-container > :first-child > :last-child {
        display: flex !important;
@@ -243,7 +290,6 @@ function DevelopUI_2Cols() {
 
      textarea[data-testid="prompt-text-area"] {
        background:#FFFE;
-       box-shadow: inset 0px 0px 2px 1px #5555;
      }
      #root > div:nth-child(2) > div > div > div > div > div.aSIvzUFX9dAs4AK6bTj0 > div.sidesheet-container.UMf9npeM8cVkDi0CDqZ0 > div.IoQhh3vVUhwDTJi9EIDK {
        min-width: 480px;
@@ -271,6 +317,7 @@ function check_href_changed() {
         } else if (dev_url_match.test(location.href)) {
             console.log(">match: dev_url");
             DevelopUI_2Cols();
+            ExportMDFunc();
         }
     }
 

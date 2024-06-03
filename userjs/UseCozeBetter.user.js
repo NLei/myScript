@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.5
-// @description  ⚡️1.在个人空间中Coze Bots增加以用户模式启动的按钮；⚡️2.在对话中增加导出Markdown功能; ⚡️3.开发模式的3列改成2列，合并提示置和功能配置为一列，使对话窗口占比更大。
+// @version      0.2.6
+// @description  ⚡️1.在对话中增加导出Markdown功能（仅文本）; ⚡️2.在个人空间中Coze Bots增加以用户模式启动的按钮（需要先publish才能有用户模式）；⚡️3.开发模式的对话窗口宽度可调；⚡️4、开发模式中合并提示词和功能配置为一列。
 // @author       You
 // @match        https://www.coze.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=coze.com
@@ -198,7 +198,10 @@ function ExportMDFunc(){
         if( document.querySelector("#copy_dialog_to_md_button") ==null ) {
 
             var lhead = document.querySelector("div[class*=semi-col]:last-child > div[class*=semi-space]") ||
-                document.querySelector("div.flex.items-center.gap-5.h-6") || document.querySelector("div.sidesheet-container div.IoQhh3vVUhwDTJi9EIDK.yXFrvezYn_4mi6bhSzMN.CKOXiJzzJsU73hzE_M4r div.IJW2oexGFSA7_n0W_IUb");
+                document.querySelector("div.flex.items-center.gap-5.h-6") ||
+                document.querySelector("div.sidesheet-container > :last-child .semi-sidesheet-body > div > div > div >div > div:last-child> div:last-child")||
+                document.querySelector("div.sidesheet-container > :last-child > :first-child > :first-child > :first-child > :last-child");
+
             if (lhead) {
                 var btn_cp = document.createElement('button');
                 lhead.insertBefore(btn_cp, lhead.firstChild);
@@ -224,46 +227,54 @@ function ExportMDFunc(){
     // 启动循环
     MDaddBtnLoop();
 
-
     function NeedPublish() {
-
-        if (/space=(\d+)/.test(location.href)) {
+        if (/bot_id=true.*?space=(\d+)/.test(location.href)) {
             console.log("space=");
             let not_exist = document.querySelector("div.semi-empty.semi-empty-vertical");
 
-            if(!not_exist) {
-                setTimeout(NeedPublish, 700);
-            }
+            if (not_exist) {
+                let warn_info = not_exist.querySelector("div.semi-empty-content > h4");
 
-            let warn_info = not_exist.querySelector("div.semi-empty-content > h4");
+                if (warn_info) {
+                    console.log("warnning=");
+                    warn_info.textContent = warn_info.textContent.replace("exist", "publish");
+                    warn_info.innerHTML +="<hr><p style='font-size:large;'>Bot need publish before opening in user mode</p>";
+                }
 
-            if(warn_info) {
-                console.log("warn_not_exist=");
-                warn_info.textContent = warn_info.textContent.replace("exist", "publish");
-                warn_info.innerHTML +="<hr><p style='font-size:large;'>Bot need publish before opening in user mode</p>";
-            }
+                let back_div = not_exist.querySelector('div.semi-empty-footer[x-semi-prop="children"] button.semi-button')
 
-            let back_div = not_exist.querySelector('div.semi-empty-footer[x-semi-prop="children"] button.semi-button')
+                if (back_div) {
+                    console.log("back_div=");
+                    let btn_publish = document.createElement('a');
+                    let publ_href = location.href.replace(/\/store\/bot\/(\d+).*?space=(\d+)/, "/space/$2/bot/$1/publish");
 
-            if(back_div) {
-                console.log("back_div=");
-                let btn_publish = document.createElement('a');
-                let publ_href = location.href.replace(/\/store\/bot\/(\d+).*?space=(\d+)/, "/space/$2/bot/$1/publish");
+                    btn_publish.innerHTML = `<a class="semi-button semi-button-primary" href="${publ_href}" style="text-decoration:none; margin:0px 10px; padding:0px 25px;" >Publish</a>`;
 
-                btn_publish.innerHTML = `<a class="semi-button semi-button-primary" href="${publ_href}" style="text-decoration:none; margin:0px 10px; padding:0px 25px;" >Publish</a>`;
-
-                back_div.before(btn_publish);
-                back_div.classList.remove("semi-button-primary");
+                    back_div.before(btn_publish);
+                    back_div.classList.remove("semi-button-primary");
+                }
+            } else {
+                setTimeout(NeedPublish, 850);
             }
         }
-
     }
 
     NeedPublish();
 
-
 }
 
+function WiderDialog() {
+    var style = document.createElement('style');
+
+    style.type = 'text/css';
+    style.innerHTML = `
+     div[data-scroll-element="scrollable"] > div.message-group-wrapper  >div {
+       width: 95% !important;
+     }
+     `
+    document.head.appendChild(style);
+
+}
 
 // 开发界面从3列改成2列
 function DevelopUI_2Cols() {
@@ -271,32 +282,108 @@ function DevelopUI_2Cols() {
 
     style.type = 'text/css';
     style.innerHTML = `
-     .sidesheet-container {
-       grid-template-columns: 1fr 3fr !important;
-     }
      .sidesheet-container > :first-child > :last-child {
        display: flex !important;
        flex-direction: column !important;
      }
      .sidesheet-container > :first-child > :last-child > :first-child {
-       height: 25% !important;
+       height: 30% !important;
+     }
+     .sidesheet-container > :first-child > :last-child > :first-child.semi-sidesheet {
+       height: 80% !important;
      }
      .sidesheet-container > :first-child > :last-child > :first-child > :first-child {
        padding-bottom: 5px !important;
      }
-     #root > div:nth-child(2) > div > div > div > div > div.aSIvzUFX9dAs4AK6bTj0 > div.sidesheet-container.UMf9npeM8cVkDi0CDqZ0 > div.IoQhh3vVUhwDTJi9EIDK > div.arQAab07X2IRwAe6dqHV > div.ZdYiacTEhcgSnacFo_ah > div > div.S6fvSlBc5DwOx925HTh1 {
+     .sidesheet-container > :first-child {
+       min-width: 420px;
+     }
+     .sidesheet-container > div.IoQhh3vVUhwDTJi9EIDK > div.arQAab07X2IRwAe6dqHV > div.ZdYiacTEhcgSnacFo_ah > div > div.S6fvSlBc5DwOx925HTh1 {
        padding: 1px 0px 0px 20px;
      }
-
      textarea[data-testid="prompt-text-area"] {
        background:#FFFE;
-     }
-     #root > div:nth-child(2) > div > div > div > div > div.aSIvzUFX9dAs4AK6bTj0 > div.sidesheet-container.UMf9npeM8cVkDi0CDqZ0 > div.IoQhh3vVUhwDTJi9EIDK {
-       min-width: 480px;
      }
     `;
 
     document.head.appendChild(style);
+
+    //对话窗口宽度可调
+    function makeResizable(target) {
+        console.log("makeResizable");
+        const handle = document.createElement('div');
+        handle.style = 'z-index:1000; position:absolute; left:0px; top:0px; bottom:0px; height:100%; width:8px; cursor:ew-resize; background:#aaa; border:3px outset;';
+        handle.id = "Resizable-Handle";
+        target.appendChild(handle);
+
+        handle.addEventListener('mousedown', function (evt) {
+            evt.preventDefault();
+            const startX = evt.clientX;
+            const startWidth = target.getBoundingClientRect().width;
+            const maxWidth = target.closest('.sidesheet-container').clientWidth - 420;
+
+            function onMouseMove(evt) {
+                let newWidth = startWidth - (evt.clientX - startX);
+                if (newWidth > maxWidth) newWidth = maxWidth; // 限制最大宽度
+                if (newWidth < 200) { newWidth = 200; } // 限制最小宽度
+                target.style.width = newWidth + 'px';
+                if(target.querySelector(".semi-sidesheet")) {
+                    target.querySelector(".semi-sidesheet").style.width = newWidth + 'px';
+                }
+                if(target.closest('.sidesheet-container')) {
+                    const percentage = newWidth / target.closest('.sidesheet-container').clientWidth * 100;
+                    target.closest('.sidesheet-container').style.gridTemplateColumns = `auto ${percentage}% `;
+                }
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+
+        });
+    }
+
+    function makeResizableLoop() {
+        const dialogDiv = document.querySelector('div.sidesheet-container > :last-child');
+        if (dialogDiv) {
+            const half_Width = window.innerWidth / 2 + "px";
+            dialogDiv.style.width = half_Width;
+            if(dialogDiv.querySelector(".semi-sidesheet")){
+                dialogDiv.querySelector(".semi-sidesheet").style.width = half_Width;
+            }
+            makeResizable(dialogDiv);
+
+            //点击对话展开按钮处理
+            dialogDiv.querySelector("span.semi-icon").parentElement.addEventListener('click', (event) => {
+                dialogDiv.querySelector("#Resizable-Handle").style.display="none";
+                setTimeout(function(){
+                    dialogDiv.style.width = dialogDiv.querySelector("div.semi-sidesheet").style.width;
+                    dialogDiv.querySelector("#Resizable-Handle").style.display="";
+                }, 150);
+            });
+
+            //浏览器窗口调整的处理
+            window.addEventListener('resize', function() {
+                const half_Width = window.innerWidth /2 + "px";
+                dialogDiv.style.width = half_Width;
+                if(dialogDiv.querySelector(".semi-sidesheet")){
+                    dialogDiv.querySelector(".semi-sidesheet").style.width = half_Width;
+                }
+            });
+
+            document.documentElement.style.minWidth="768px";
+            document.body.style.minWidth="768px";
+
+        } else {
+            setTimeout(makeResizableLoop, 800);
+        }
+    }
+    makeResizableLoop();
 }
 
 const space_url_match = /https:\/\/www\.coze\.com\/space\/.+\/bot$/;
@@ -314,6 +401,7 @@ function check_href_changed() {
         } else if (bot_url_match.test(location.href)) {
             console.log(">match: bot_url");
             ExportMDFunc();
+            WiderDialog();
         } else if (dev_url_match.test(location.href)) {
             console.log(">match: dev_url");
             DevelopUI_2Cols();

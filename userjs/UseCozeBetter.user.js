@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.6
+// @version      0.2.9
 // @description  ⚡️1.在对话中增加导出Markdown功能（仅文本）; ⚡️2.在个人空间中Coze Bots增加以用户模式启动的按钮（需要先publish才能有用户模式）；⚡️3.开发模式的对话窗口宽度可调；⚡️4、开发模式中合并提示词和功能配置为一列。
 // @author       You
 // @match        https://www.coze.com/*
@@ -18,8 +18,11 @@ GM_addStyle(
       direction: rtl;
     }
     .bot-user-mode-btn {
-      box-shadow: 2px 2px 5px 1px #0005;
+      box-shadow: 1px 1px 3px 1px #0005;
       text-decoration: none;
+    }
+    .bot-need-publish-btn {
+      background: #19b;
     }
     `
 );
@@ -30,21 +33,30 @@ GM_addStyle(
  */
 function UserModeFunc() {
     function addBtnLoop() {
-        if( document.querySelector("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']") != null ) {
-            document.querySelectorAll("#root section > section > main  div.semi-spin-children div > a[href*='/bot/']").forEach(function(item){
+        if( document.querySelector("#root section > section > main div.semi-spin-children > div > a[data-testid][href*='/bot/']") != null ) {
+            document.querySelectorAll("#root section > section > main  div.semi-spin-children > div > a[data-testid][href*='/bot/']").forEach(function(item) {
                 if( item.href.match(/\/space\/.*\/bot\/.*/i) ) {
                     let editLink = item.href;
-                    let userLink = editLink.replace(/\/space\/(.*)(\/bot\/.*)/, "/store$2?bot_id=true&space=$1");
-                    //item.removeAttribute("href");
-
-                    if(item.querySelector("div.bot-user-mode-div") ==null) {
-                        let btn_user = document.createElement('div');
-                        item.append(btn_user);
-                        btn_user.className = "bot-user-mode-div"
-                        btn_user.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn" href="${userLink}" target="_blank">Open in User Mode</a>`;
-                        btn_user.addEventListener('click', function(event) {
-                            event.stopPropagation();
-                        });
+                    if (item.querySelector("div.bot-user-mode-div") == null) {
+                        if (item.querySelector("svg.icon-icon.coz-fg-hglt-green")) { // 已发布的，可进入用户模式打开
+                            const userLink = editLink.replace(/\/space\/.*(\/bot\/.*)/, "/store$1?bot_id=true");
+                            let btn_user = document.createElement('div');
+                            item.append(btn_user);
+                            btn_user.className = "bot-user-mode-div"
+                            btn_user.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn" href="${userLink}" target="_blank">Open in User Mode</a>`;
+                            btn_user.addEventListener('click', function(event) {
+                                event.stopPropagation();
+                            });
+                        } else { // 未发布的，可进入发布页
+                            const publLink = editLink+"/publish";
+                            let btn_publ = document.createElement('div');
+                            item.append(btn_publ);
+                            btn_publ.className = "bot-user-mode-div"
+                            btn_publ.innerHTML = `<a class="semi-button semi-button-primary bot-user-mode-btn bot-need-publish-btn" href="${publLink}" target="_blank">Publish</a>`;
+                            btn_publ.addEventListener('click', function(event) {
+                                event.stopPropagation();
+                            });
+                        }
                     }
                 }
             });
@@ -226,41 +238,6 @@ function ExportMDFunc(){
 
     // 启动循环
     MDaddBtnLoop();
-
-    function NeedPublish() {
-        if (/bot_id=true.*?space=(\d+)/.test(location.href)) {
-            console.log("space=");
-            let not_exist = document.querySelector("div.semi-empty.semi-empty-vertical");
-
-            if (not_exist) {
-                let warn_info = not_exist.querySelector("div.semi-empty-content > h4");
-
-                if (warn_info) {
-                    console.log("warnning=");
-                    warn_info.textContent = warn_info.textContent.replace("exist", "publish");
-                    warn_info.innerHTML +="<hr><p style='font-size:large;'>Bot need publish before opening in user mode</p>";
-                }
-
-                let back_div = not_exist.querySelector('div.semi-empty-footer[x-semi-prop="children"] button.semi-button')
-
-                if (back_div) {
-                    console.log("back_div=");
-                    let btn_publish = document.createElement('a');
-                    let publ_href = location.href.replace(/\/store\/bot\/(\d+).*?space=(\d+)/, "/space/$2/bot/$1/publish");
-
-                    btn_publish.innerHTML = `<a class="semi-button semi-button-primary" href="${publ_href}" style="text-decoration:none; margin:0px 10px; padding:0px 25px;" >Publish</a>`;
-
-                    back_div.before(btn_publish);
-                    back_div.classList.remove("semi-button-primary");
-                }
-            } else {
-                setTimeout(NeedPublish, 850);
-            }
-        }
-    }
-
-    NeedPublish();
-
 }
 
 function WiderDialog() {

@@ -1,14 +1,17 @@
 // ==UserScript==
 // @name         Coze Better & Export MD
+// @name:en      Coze Better & Export MD
 // @namespace    http://tampermonkey.net/
-// @version      0.2.9
+// @version      0.3.0
 // @description  ⚡️1.在对话中增加导出Markdown功能（仅文本）; ⚡️2.在个人空间中Coze Bots增加以用户模式启动的按钮（需要先publish才能有用户模式）；⚡️3.开发模式的对话窗口宽度可调；⚡️4、开发模式中合并提示词和功能配置为一列。
+// @description:en  ⚡️1. Add a Markdown export feature (for text only) in the conversation; ⚡️2. In the personal space, add a button to launch Coze Bots in user mode (user mode is available only after publishing); ⚡️3. Adjustable width for the conversation window in development mode; ⚡️4. Merge prompt words and function configuration into one column in development mode.
 // @author       You
 // @match        https://www.coze.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=coze.com
-// @updateURL    https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
-// @downloadURL  https://github.com/NLei/myScript/raw/master/userjs/UseCozeBetter.user.js
+// @downloadURL  https://update.greasyfork.org/scripts/497002/Coze%20Better%20%20Export%20MD.user.js
+// @updateURL    https://update.greasyfork.org/scripts/497002/Coze%20Better%20%20Export%20MD.meta.js
 // @grant        GM_addStyle
+// @license      AGPL-v3.0
 // ==/UserScript==
 
 GM_addStyle(
@@ -22,7 +25,7 @@ GM_addStyle(
       text-decoration: none;
     }
     .bot-need-publish-btn {
-      background: #19b;
+      background: #08B;
     }
     `
 );

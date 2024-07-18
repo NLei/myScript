@@ -1,0 +1,4 @@
+wsl --shutdown
+
+pause
+
